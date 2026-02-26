@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌈 神奇天气预报 🌈</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'YouYuan', 'Microsoft YaHei', cursive;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 动态背景 */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        /* 星星 */
+        .star {
+            position: absolute;
+            font-size: 20px;
+            animation: twinkle 2s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+            50% { opacity: 0.5; transform: scale(0.8) rotate(180deg); }
+        }
+
+        /* 漂浮的云朵 */
+        .cloud {
+            position: absolute;
+            font-size: 80px;
+            opacity: 0.7;
+            animation: float 25s infinite linear;
+            filter: drop-shadow(0 10px 20px rgba(255,255,255,0.3));
+        }
+
+        @keyframes float {
+            0% { transform: translateX(-150px) translateY(0); }
+            50% { transform: translateY(-30px); }
+            100% { transform: translateX(calc(100vw + 150px)) translateY(0); }
+        }
+
+        /* 彩虹 */
+        .rainbow {
+            position: absolute;
+            font-size: 120px;
+            opacity: 0.6;
+            animation: rainbow-float 15s infinite ease-in-out;
+        }
+
+        @keyframes rainbow-float {
+            0%, 100% { transform: translateY(0) rotate(-10deg); }
+            50% { transform: translateY(-50px) rotate(10deg); }
+        }
+
+        /* 气泡 */
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            animation: rise 8s infinite ease-in;
+            bottom: -50px;
+        }
+
+        @keyframes rise {
+            0% { transform: translateY(0) scale(1); opacity: 0.8; }
+            100% { transform: translateY(-100vh) scale(1.5); opacity: 0; }
+        }
+
+        /* 主容器 */
+        .container {
+            background: linear-gradient(135deg, #FFF5F5 0%, #FFE4E1 25%, #E6F3FF 50%, #F0FFF0 75%, #FFFACD 100%);
+            border-radius: 50px;
+            padding: 50px 40px;
+            box-shadow: 
+                0 25px 80px rgba(0,0,0,0.2),
+                0 0 0 10px #FFB6C1,
+                0 0 0 15px #FFD700,
+                0 0 0 20px #FF69B4,
+                inset 0 0 60px rgba(255,255,255,0.5);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+            border: 8px dashed #FF69B4;
+            animation: container-glow 3s infinite;
+        }
+
+        @keyframes container-glow {
+            0%, 100% { box-shadow: 0 25px 80px rgba(255,105,180,0.3), 0 0 0 10px #FFB6C1, 0 0 0 15px #FFD700, 0 0 0 20px #FF69B4; }
+            50% { box-shadow: 0 25px 80px rgba(255,215,0,0.3), 0 0 0 10px #FFD700, 0 0 0 15px #FF69B4, 0 0 0 20px #FFB6C1; }
+        }
+
+        /* 装饰角标 */
+        .corner-decoration {
+            position: absolute;
+            font-size: 50px;
+            z-index: 11;
+        }
+        .corner-tl { top: -25px; left: -25px; animation: bounce 2s infinite; }
+        .corner-tr { top: -25px; right: -25px; animation: bounce 2s infinite 0.5s; }
+        .corner-bl { bottom: -25px; left: -25px; animation: bounce 2s infinite 1s; }
+        .corner-br { bottom: -25px; right: -25px; animation: bounce 2s infinite 1.5s; }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(10deg); }
+        }
+
+        /* 标题 */
+        .title {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #FF6B6B, #FFD93D, #4ECDC4, #FF6B6B);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-shift 5s infinite;
+            margin-bottom: 30px;
+            text-shadow: 0 0 30px rgba(255,107,107,0.3);
+        }
+
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 城市选择器 */
+        .city-selector {
+            background: linear-gradient(135deg, #FFE4E1 0%, #FFB6C1 100%);
+            border-radius: 30px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 4px solid #FF69B4;
+            box-shadow: 0 10px 30px rgba(255,105,180,0.3);
+        }
+
+        .city-selector label {
+            font-size: 1.5em;
+            color: #FF6B6B;
+            display: block;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .city-select {
+            width: 100%;
+            padding: 15px 25px;
+            font-size: 1.3em;
+            border: 4px solid #FFD700;
+            border-radius: 20px;
+            background: white;
+            color: #667eea;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s;
+            outline: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .city-select:hover {
+            border-color: #FF69B4;
+            transform: scale(1.02);
+        }
+
+        .city-select:focus {
+            border-color: #4ECDC4;
+            box-shadow: 0 0 20px rgba(78,205,196,0.5);
+        }
+
+        /* 城市名称显示 */
+        .city-name {
+            font-size: 2.5em;
+            color: #FF6B6B;
+            text-shadow: 
+                3px 3px 0 #FFD93D,
+                6px 6px 0 #FF6B6B,
+                0 0 30px rgba(255,107,107,0.5);
+            margin-bottom: 20px;
+            animation: city-bounce 2s infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        @keyframes city-bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-8px) scale(1.05); }
+        }
+
+        .city-emoji {
+            font-size: 1.2em;
+            animation: spin 10s infinite linear;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 天气主图标 */
+        .weather-icon-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+        }
+
+        .weather-icon {
+            font-size: 180px;
+            filter: drop-shadow(0 15px 30px rgba(0,0,0,0.3));
+            animation: weather-wiggle 3s infinite;
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes weather-wiggle {
+            0%, 100% { transform: rotate(-8deg) scale(1); }
+            25% { transform: rotate(8deg) scale(1.05); }
+            50% { transform: rotate(-8deg) scale(1); }
+            75% { transform: rotate(8deg) scale(1.05); }
+        }
+
+        .icon-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(255,215,0,0.6) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: glow-pulse 2s infinite;
+            z-index: 1;
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.3; }
+        }
+
+        /* 温度 */
+        .temperature {
+            font-size: 5em;
+            background: linear-gradient(45deg, #4ECDC4, #44A08D);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 0 0 30px rgba(78,205,196,0.5);
+            animation: temp-pulse 2s infinite;
+        }
+
+        @keyframes temp-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* 天气描述 */
+        .weather-desc {
+            font-size: 2em;
+            color: #FF6B6B;
+            background: linear-gradient(135deg, #FFF 0%, #FFE4E1 100%);
+            padding: 20px 40px;
+            border-radius: 40px;
+            display: inline-block;
+            margin: 20px 0;
+            border: 5px solid #FFD93D;
+            box-shadow: 0 10px 30px rgba(255,217,61,0.4);
+            animation: desc-float 3s infinite;
+        }
+
+        @keyframes desc-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* 详情卡片 */
+        .details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .detail-card {
+            background: linear-gradient(135deg, #FFE4E1 0%, #FFB6C1 50%, #FFE4E1 100%);
+            border-radius: 25px;
+            padding: 25px 15px;
+            border: 4px solid #FF69B4;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(255,105,180,0.3);
+        }
+
+        .detail-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.4), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .detail-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(255,105,180,0.5);
+        }
+
+        .detail-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+            animation: icon-bounce 2s infinite;
+        }
+
+        @keyframes icon-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .detail-label {
+            font-size: 1.1em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 1.8em;
+            color: #FF6B6B;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 #FFD93D;
+        }
+
+        /* 预报区域 */
+        .forecast {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 5px dashed #FFB6C1;
+        }
+
+        .forecast-title {
+            font-size: 2em;
+            color: #FF6B6B;
+            margin-bottom: 25px;
+            text-shadow: 2px 2px 0 #FFD93D;
+        }
+
+        .forecast-days {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .forecast-day {
+            background: linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 50%, #E0F7FA 100%);
+            border-radius: 25px;
+            padding: 20px 15px;
+            min-width: 110px;
+            border: 4px solid #4ECDC4;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 8px 25px rgba(78,205,196,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .forecast-day::after {
+            content: '✨';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 15px;
+            animation: twinkle 1.5s infinite;
+        }
+
+        .forecast-day:hover {
+            transform: translateY(-15px) scale(1.1) rotate(5deg);
+            box-shadow: 0 15px 40px rgba(78,205,196,0.5);
+        }
+
+        .forecast-day-name {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .forecast-day-icon {
+            font-size: 3.5em;
+            margin: 10px 0;
+            animation: forecast-icon-bounce 2s infinite;
+        }
+
+        @keyframes forecast-icon-bounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(10deg); }
+        }
+
+        .forecast-day-temp {
+            font-size: 1.4em;
+            color: #FF6B6B;
+            font-weight: bold;
+            text-shadow: 1px 1px 0 #FFD93D;
+        }
+
+        /* 刷新按钮 */
+        .refresh-btn {
+            margin-top: 35px;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 50%, #FF6B6B 100%);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.6em;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 
+                0 10px 0 #CC5555,
+                0 15px 30px rgba(255,107,107,0.4);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .refresh-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .refresh-btn:hover::before {
+            left: 100%;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 15px 0 #CC5555,
+                0 20px 40px rgba(255,107,107,0.5);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(5px);
+            box-shadow: 
+                0 5px 0 #CC5555,
+                0 8px 20px rgba(255,107,107,0.4);
+        }
+
+        /* 加载动画 */
+        .loading {
+            font-size: 2.5em;
+            color: #FF6B6B;
+            animation: loading-bounce 1s infinite;
+        }
+
+        @keyframes loading-bounce {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
+
+        .loading-dots {
+            display: inline-block;
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        /* 错误提示 */
+        .error-message {
+            background: linear-gradient(135deg, #FFE4E1 0%, #FFB6C1 100%);
+            border-radius: 30px;
+            padding: 30px;
+            border: 4px solid #FF6B6B;
+        }
+
+        .error-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+                border-radius: 30px;
+            }
+
+            .title {
+                font-size: 1.8em;
+            }
+
+            .city-name {
+                font-size: 1.8em;
+            }
+
+            .weather-icon {
+                font-size: 120px;
+            }
+
+            .temperature {
+                font-size: 3.5em;
+            }
+
+            .weather-desc {
+                font-size: 1.5em;
+                padding: 15px 25px;
+            }
+
+            .detail-icon {
+                font-size: 2em;
+            }
+
+            .detail-value {
+                font-size: 1.4em;
+            }
+
+            .forecast-day {
+                min-width: 90px;
+                padding: 15px 10px;
+            }
+
+            .refresh-btn {
+                font-size: 1.3em;
+                padding: 15px 35px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景动画 -->
+    <div class="bg-animation" id="bg-animation"></div>
+
+    <div class="container">
+        <!-- 装饰角标 -->
+        <div class="corner-decoration corner-tl">🌟</div>
+        <div class="corner-decoration corner-tr">🦄</div>
+        <div class="corner-decoration corner-bl">🌈</div>
+        <div class="corner-decoration corner-br">✨</div>
+
+        <h1 class="title">🌈 神奇天气预报 🌈</h1>
+
+        <!-- 城市选择器 -->
+        <div class="city-selector">
+            <label for="city-select">🗺️ 选择一个城市：</label>
+            <select class="city-select" id="city-select" onchange="changeCity()">
+                <option value="Nanjing" data-emoji="🏯">南京</option>
+                <option value="Beijing" data-emoji="🏛️">北京</option>
+                <option value="Shanghai" data-emoji="🏙️">上海</option>
+                <option value="Guangzhou" data-emoji="🌺">广州</option>
+                <option value="Shenzhen" data-emoji="🚀">深圳</option>
+                <option value="Chengdu" data-emoji="🐼">成都</option>
+                <option value="Hangzhou" data-emoji="🏞️">杭州</option>
+                <option value="Xi'an" data-emoji="🏺">西安</option>
+                <option value="Wuhan" data-emoji="🍜">武汉</option>
+                <option value="Chongqing" data-emoji="🌶️">重庆</option>
+                <option value="Tianjin" data-emoji="🎭">天津</option>
+                <option value="Suzhou" data-emoji="🏯">苏州</option>
+                <option value="Qingdao" data-emoji="🌊">青岛</option>
+                <option value="Dalian" data-emoji="⚓">大连</option>
+                <option value="Harbin" data-emoji="❄️">哈尔滨</option>
+                <option value="Sanya" data-emoji="🏖️">三亚</option>
+                <option value="Lhasa" data-emoji="🏔️">拉萨</option>
+                <option value="Kunming" data-emoji="🦋">昆明</option>
+                <option value="Zhuhai" data-emoji="🎡">珠海</option>
+                <option value="Xiamen" data-emoji="🏝️">厦门</option>
+            </select>
+        </div>
+
+        <div id="weather-content">
+            <div class="loading">
+                正在获取天气<span class="loading-dots"></span>
+            </div>
+        </div>
+
+        <button class="refresh-btn" onclick="loadWeather()">
+            🔄 刷新天气
+        </button>
+    </div>
+
+    <script>
+        // 天气图标映射
+        const weatherIcons = {
+            'sunny': '☀️',
+            'clear': '☀️',
+            'partly cloudy': '⛅',
+            'cloudy': '☁️',
+            'overcast': '☁️',
+            'light rain': '🌦️',
+            'moderate rain': '🌧️',
+            'heavy rain': '⛈️',
+            'drizzle': '💧',
+            'light drizzle': '💧',
+            'thunder': '⚡',
+            'thunderstorm': '⛈️',
+            'snow': '❄️',
+            'light snow': '🌨️',
+            'moderate snow': '🌨️',
+            'heavy snow': '❄️',
+            'fog': '🌫️',
+            'mist': '🌫️',
+            'haze': '🌫️',
+            'default': '🌤️'
+        };
+
+        // 城市 emoji 映射
+        const cityEmojis = {
+            'Nanjing': '🏯',
+            'Beijing': '🏛️',
+            'Shanghai': '🏙️',
+            'Guangzhou': '🌺',
+            'Shenzhen': '🚀',
+            'Chengdu': '🐼',
+            'Hangzhou': '🏞️',
+            'Xi\'an': '🏺',
+            'Wuhan': '🍜',
+            'Chongqing': '🌶️',
+            'Tianjin': '🎭',
+            'Suzhou': '🏯',
+            'Qingdao': '🌊',
+            'Dalian': '⚓',
+            'Harbin': '❄️',
+            'Sanya': '🏖️',
+            'Lhasa': '🏔️',
+            'Kunming': '🦋',
+            'Zhuhai': '🎡',
+            'Xiamen': '🏝️'
+        };
+
+        // 获取天气图标
+        function getWeatherIcon(condition) {
+            condition = condition.toLowerCase();
+            for (let key in weatherIcons) {
+                if (condition.includes(key)) {
+                    return weatherIcons[key];
+                }
+            }
+            return weatherIcons['default'];
+        }
+
+        // 获取星期几
+        function getDayName(offset) {
+            const days = ['今天', '明天', '后天', '大后天', '大大后天'];
+            const date = new Date();
+            date.setDate(date.getDate() + offset);
+            const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+            
+            if (offset < days.length - 1) {
+                return days[offset];
+            }
+            return weekDays[date.getDay()];
+        }
+
+        // 创建背景动画元素
+        function createBackgroundElements() {
+            const bgContainer = document.getElementById('bg-animation');
+            
+            // 添加星星
+            for (let i = 0; i < 20; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.innerHTML = '⭐';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                bgContainer.appendChild(star);
+            }
+
+            // 添加云朵
+            const clouds = ['☁️', '🌤️', '☁️', '🌥️'];
+            for (let i = 0; i < 5; i++) {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud';
+                cloud.innerHTML = clouds[i % clouds.length];
+                cloud.style.top = (Math.random() * 40 + 5) + '%';
+                cloud.style.animationDelay = (i * 5) + 's';
+                bgContainer.appendChild(cloud);
+            }
+
+            // 添加彩虹
+            const rainbow = document.createElement('div');
+            rainbow.className = 'rainbow';
+            rainbow.innerHTML = '🌈';
+            rainbow.style.top = '15%';
+            rainbow.style.left = '10%';
+            bgContainer.appendChild(rainbow);
+
+            // 添加气泡
+            for (let i = 0; i < 10; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const size = Math.random() * 40 + 20;
+                bubble.style.width = size + 'px';
+                bubble.style.height = size + 'px';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.animationDelay = (i * 0.8) + 's';
+                bgContainer.appendChild(bubble);
+            }
+        }
+
+        // 获取当前选中的城市
+        function getCurrentCity() {
+            const select = document.getElementById('city-select');
+            return select.value;
+        }
+
+        // 获取当前选中的城市中文名
+        function getCurrentCityName() {
+            const select = document.getElementById('city-select');
+            return select.options[select.selectedIndex].text;
+        }
+
+        // 获取城市 emoji
+        function getCityEmoji(city) {
+            return cityEmojis[city] || '🏠';
+        }
+
+        // 切换城市
+        function changeCity() {
+            loadWeather();
+        }
+
+        // 加载天气数据
+        async function loadWeather() {
+            const contentDiv = document.getElementById('weather-content');
+            const city = getCurrentCity();
+            const cityName = getCurrentCityName();
+            const cityEmoji = getCityEmoji(city);
+
+            contentDiv.innerHTML = `
+                <div class="loading">
+                    正在获取${cityName}的天气<span class="loading-dots"></span>
+                </div>
+            `;
+
+            try {
+                // 使用 wttr.in API 获取天气
+                const response = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);
+                const data = await response.json();
+
+                const current = data.current_condition[0];
+                const forecast = data.weather;
+
+                // 获取天气图标
+                const icon = getWeatherIcon(current.weatherDesc[0].value);
+
+                // 构建当前天气 HTML
+                let html = `
+                    <div class="city-name">
+                        <span class="city-emoji">${cityEmoji}</span>
+                        <span>${cityName}</span>
+                    </div>
+                    
+                    <div class="weather-icon-container">
+                        <div class="icon-glow"></div>
+                        <div class="weather-icon">${icon}</div>
+                    </div>
+                    
+                    <div class="temperature">${current.temp_C}°C</div>
+                    <div class="weather-desc">${current.weatherDesc[0].value}</div>
+                    
+                    <div class="details">
+                        <div class="detail-card">
+                            <div class="detail-icon">💧</div>
+                            <div class="detail-label">湿度</div>
+                            <div class="detail-value">${current.humidity}%</div>
+                        </div>
+                        <div class="detail-card">
+                            <div class="detail-icon">💨</div>
+                            <div class="detail-label">风速</div>
+                            <div class="detail-value">${current.windspeedKmph} km/h</div>
+                        </div>
+                        <div class="detail-card">
+                            <div class="detail-icon">🌡️</div>
+                            <div class="detail-label">最高温</div>
+                            <div class="detail-value">${forecast[0].maxtempC}°C</div>
+                        </div>
+                        <div class="detail-card">
+                            <div class="detail-icon">🌙</div>
+                            <div class="detail-label">最低温</div>
+                            <div class="detail-value">${forecast[0].mintempC}°C</div>
+                        </div>
+                        <div class="detail-card">
+                            <div class="detail-icon">🌧️</div>
+                            <div class="detail-label">降雨概率</div>
+                            <div class="detail-value">${current.chanceofrain}%</div>
+                        </div>
+                        <div class="detail-card">
+                            <div class="detail-icon">☁️</div>
+                            <div class="detail-label">云量</div>
+                            <div class="detail-value">${current.cloudcover}%</div>
+                        </div>
+                    </div>
+
+                    <div class="forecast">
+                        <div class="forecast-title">📅 未来几天天气预报</div>
+                        <div class="forecast-days">
+                `;
+
+                // 添加未来 4 天预报
+                for (let i = 1; i <= 4; i++) {
+                    const day = forecast[i] || forecast[forecast.length - 1];
+                    const dayDesc = day.avgDesc ? day.avgDesc[0].value : (day.hourly[12] ? day.hourly[12].weatherDesc[0].value : '晴朗');
+                    const dayIcon = getWeatherIcon(dayDesc);
+                    
+                    html += `
+                        <div class="forecast-day">
+                            <div class="forecast-day-name">${getDayName(i)}</div>
+                            <div class="forecast-day-icon">${dayIcon}</div>
+                            <div class="forecast-day-temp">${day.mintempC}° ~ ${day.maxtempC}°</div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                        </div>
+                    </div>
+                `;
+
+                contentDiv.innerHTML = html;
+
+            } catch (error) {
+                console.error('获取天气失败:', error);
+                contentDiv.innerHTML = `
+                    <div class="error-message">
+                        <div class="error-icon">🤔</div>
+                        <div class="weather-desc">哎呀，获取天气失败了</div>
+                        <p style="font-size: 1.3em; color: #666; margin-top: 15px;">请检查网络连接后重试哦~</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            createBackgroundElements();
+            loadWeather();
+        };
+    </script>
+</body>
+</html>
